@@ -22,7 +22,7 @@ app.use(express.json()); // Middleware to parse JSON bodies
 
 //middleware
 app.use(morgan('dev'));
-app.use(cors({ origin: true, credentials: true }));
+app.use(cors());
 app.use(express.json());
 //error handling middleware
 app.use((err, req, res, next) => {
