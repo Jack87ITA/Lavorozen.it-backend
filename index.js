@@ -4,7 +4,11 @@ const mongoose = require('mongoose');
 const morgan = require('morgan');
 const cors = require('cors');
 require('dotenv').config();
+
+
 const app = express();
+app.use(cors());
+
 //db
 // const userRoutes = require('./routes/userRoutes');
 const inputRoutes = require('./routes/inputRoutes');
@@ -17,12 +21,10 @@ mongoose.connect(mongoUrl)
   .catch(err => console.error('MongoDB connection error:', err));
 
 
-app.use(express.json()); // Middleware to parse JSON bodies
 
 
 //middleware
 app.use(morgan('dev'));
-app.use(cors());
 app.use(express.json());
 //error handling middleware
 app.use((err, req, res, next) => {
