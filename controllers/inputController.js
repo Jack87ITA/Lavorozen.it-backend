@@ -38,9 +38,11 @@ exports.getResults = async (req, res) => {
         }
 
 
-        const { inps } = getResults(inputData);
+        const { inps, inpsAzienda, inail, tfr, costoAzendia, irpef, regionalTax, localTownRate } = getResults(inputData);
 
-        const newInput = new Input({
+        const newInput =
+        // new Input(
+        {
             ral,
             province,
             mensilita,
@@ -54,15 +56,24 @@ exports.getResults = async (req, res) => {
             altriFamiliariCarico,
             categoria,
             result: {
-                inps
+                inps,
+                inpsAzienda,
+                inail,
+                tfr,
+                costoAzendia,
+                irpef,
+                regionalTax,
+                localTownRate
             }
-        });
+        }
+        // );
 
 
-        await newInput.save();
+        // await newInput.save();
         res.status(201).json({
             success: true,
-            message: "data created successfully", data: newInput });
+            message: "data created successfully", data: newInput
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Failed to create data", error });
