@@ -2,13 +2,30 @@ const { costSheet, irpefRate, regionalRate, ProvinceList, RegionProvinceMap } = 
 
 function getResults(input) {
 
+
+
     const inps = calculateInps(input.ral, input.mensilita, input.contratto);
+
+    const inponibileIRPEF = input.ral - inps;
 
     const { inpsAzienda, inail, tfr } = calculateCost(input.ral, input.contratto, input.categoria);
 
     const region = getRegion(input.province);
 
-    const { irpefPaid, regionalTaxApplied, localTownRate } = calculateIrpef(input.ral - inps, region, input.addizionaleComunale);
+    let { irpefPaid, regionalTaxApplied, localTownRate } = calculateIrpef(input.ral - inps, region, input.addizionaleComunale);
+
+    let { deduction1, deduction2, deduction3, deduction4, trattamentoIntegrativo } = getDeductions({ ...input, inponibileIRPEF });
+
+    let deductionsSum = Number(deduction1) + Number(deduction2) + Number(deduction3) + Number(deduction4);
+
+    if (deductionsSum > irpefPaid) {
+        regionalTaxApplied = 0;
+        localTownRate = 0;
+        deductionsSum = irpefPaid;
+    }
+
+
+    let iprefSum = Number(irpefPaid) + Number(regionalTaxApplied) + Number(localTownRate)
 
     return {
         inps: inps.toFixed(0),
@@ -18,7 +35,17 @@ function getResults(input) {
         costoAzendia: Number(Number(input.ral) + Number(inpsAzienda) + Number(inail) + Number(tfr)).toFixed(0),
         irpef: irpefPaid.toFixed(0),
         regionalTax: regionalTaxApplied.toFixed(0),
-        localTownRate: localTownRate.toFixed(0)
+        localTownRate: localTownRate.toFixed(0),
+        deductions: {
+            deduction1: deduction1.toFixed(0),
+            deduction2: deduction2.toFixed(0),
+            deduction3: deduction3.toFixed(0),
+            deduction4: deduction4.toFixed(0)
+        },
+        trattamentoIntegrativo: trattamentoIntegrativo,
+        deductionsSum: deductionsSum.toFixed(0),
+        stipendioNetto: parseInt(iprefSum - deductionsSum - inps + Number(input.ral) + Number(trattamentoIntegrativo)).toFixed(0),
+        iprefSum: iprefSum.toFixed(0)
     }
 
 }
@@ -68,7 +95,10 @@ const calculateCost = (ral, contratto, categoria) => {
     const inail = ral * inalRateApplied / 100;
     const tfr = ral / 13.5 - ral * 0.5 / 100;
 
+    const costoAzendia = ral + inpsAzienda + inail + tfr;
+
     return {
+        costoAzendia,
         inpsAzienda,
         inail,
         tfr
@@ -105,7 +135,7 @@ const calculateIrpef = (inponibileIRPEF, region, addizionaleComunale) => {
 
         regionalTaxApplied = 15000 * regionalRate["15000"][region] / 100 + 13000 * regionalRate["28000"][region] / 100 + (inponibileIRPEF - 28000) * regionalRate["50000"][region] / 100;
     } else {
-         15000 * irpefRate["15000"] / 100;
+        15000 * irpefRate["15000"] / 100;
 
         irpefPaid =
             15000 * irpefRate["15000"] / 100 +
@@ -141,5 +171,90 @@ const getRegion = (province) => {
 
     return region;
 }
+
+
+const getDeductions = ({ inponibileIRPEF, figliCarico, percentualeFigliCarico, altriFamiliariCarico, coniugeCarico, giorniLavorati, contratto }) => {
+
+
+    // Deduction 1
+
+    let trattamentoIntegrativo = 0;
+
+    let deduction1 = 0;
+
+    if (inponibileIRPEF < 15000) {
+        const irpefDeduction = 1955
+        if (giorniLavorati > 360) {
+            deduction1 = Math.max(
+                irpefDeduction * giorniLavorati / 365,
+                contratto === "indeterminato" ? 690 : 1380
+            )
+            trattamentoIntegrativo = 1200
+        } else {
+            irpefDeduction * giorniLavorati / 365
+        }
+    } else if (inponibileIRPEF < 28000) {
+        const irpefDeduction = 1910 + 1190 * (28000 - inponibileIRPEF) / 13000
+
+        deduction1 = (irpefDeduction + inponibileIRPEF > 25000 ? 65 : 0) * giorniLavorati / 365
+    } else if (inponibileIRPEF < 50000) {
+        const irpefDeduction = 1910 * (50000 - inponibileIRPEF) / 22000
+
+        deduction1 = (irpefDeduction + inponibileIRPEF > 35000 ? 65 : 0) * giorniLavorati / 365
+    }
+
+
+    // Deduction 2
+
+    let deduction2 = 0;
+
+    if (coniugeCarico) {
+
+        if (inponibileIRPEF < 15000) {
+            deduction2 = 800 - (110 * (inponibileIRPEF / 15000));
+        } else if (inponibileIRPEF < 40000) {
+            deduction2 = 690;
+        } else if (inponibileIRPEF < 80000) {
+            deduction2 = 690 * (80000 - inponibileIRPEF) / 40000;
+        }
+    }
+
+
+
+
+    // Deduction 3
+
+    const deduction3 = altriFamiliariCarico * 750; // considering 750 as constant for each family member
+
+
+
+    // Deduction 4
+
+    param1 = 950;
+    param2 = 95000;
+    param3 = 15000;
+
+    param4 = param2 + param3 * (figliCarico - 1);
+
+    detrazoine = param1 * (param4 - inponibileIRPEF) / param4 * figliCarico;
+
+    let maggiorazione = 0;
+
+    if (figliCarico > 3) {
+        maggiorazione = 200 * (figliCarico - 3);
+    }
+
+    const deduction4 = (detrazoine + maggiorazione) * percentualeFigliCarico / 100;
+
+    return {
+        deduction1,
+        deduction2,
+        deduction3,
+        deduction4,
+        trattamentoIntegrativo
+    }
+
+}
+
 
 exports.getResults = getResults;
