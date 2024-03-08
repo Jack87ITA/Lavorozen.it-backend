@@ -4,13 +4,62 @@ const Schema = mongoose.Schema;
 
 const ContrattoEnum = ['indeterminato', 'determinato', 'apprendistato'];
 const GenereEnum = ['uomo', 'donna', 'altro'];
-const CategoriaEnum = ['dirigente', 'impiegato', 'operaio'];
+const CategoriaEnum = ['dirigenti', 'impiegati', 'operai'];
 
 const resultSchema = new mongoose.Schema({
-    inps: {
+    inps: [{
         type: Number,
         default: 0
+    }],
+    inpsAzienda: [{
+        type: Number,
+        default: 0
+    }],
+    inail: [{
+        type: Number,
+        default: 0
+    }],
+    tfr: [{
+        type: Number,
+        default: 0
+    }],
+    costoAzienda: [{
+        type: Number,
+        default: 0
+    }],
+    irpef: [{
+        type: Number,
+        default: 0
+    }],
+    regionalTax: [{
+        type: Number,
+        default: 0
+    }],
+    localTownRate: [{
+        type: Number,
+        default: 0
+    }],
+    deductions: {
+        type: Object,
+        default: {}
     },
+    totalDeductions: [{
+        type: Number,
+        default: 0
+    }],
+    totalIrpef: [{
+        type: Number,
+        default: 0
+    }],
+    stipendioNetto: [{
+        type: Number,
+        default: 0
+    }],
+    trattamentoIntegrativo: [{
+        type: Number,
+        default: 0
+    }
+    ]
 }, { _id: false });
 
 
