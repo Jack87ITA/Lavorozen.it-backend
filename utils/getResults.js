@@ -44,7 +44,7 @@ function getResults(input) {
         },
         trattamentoIntegrativo: trattamentoIntegrativo,
         deductionsSum: deductionsSum.toFixed(0),
-        stipendioNetto: parseInt(iprefSum - deductionsSum - inps + Number(input.ral) + Number(trattamentoIntegrativo)).toFixed(0),
+        stipendioNetto: parseInt(-iprefSum + deductionsSum - inps + Number(input.ral) + Number(trattamentoIntegrativo)).toFixed(0),
         iprefSum: iprefSum.toFixed(0)
     }
 
@@ -183,6 +183,7 @@ const getDeductions = ({ inponibileIRPEF, figliCarico, percentualeFigliCarico, a
     let deduction1 = 0;
 
     if (inponibileIRPEF < 15000) {
+        console.log("1000")
         const irpefDeduction = 1955
         if (giorniLavorati > 360) {
             deduction1 = Math.max(
@@ -196,11 +197,11 @@ const getDeductions = ({ inponibileIRPEF, figliCarico, percentualeFigliCarico, a
     } else if (inponibileIRPEF < 28000) {
         const irpefDeduction = 1910 + 1190 * (28000 - inponibileIRPEF) / 13000
 
-        deduction1 = (irpefDeduction + inponibileIRPEF > 25000 ? 65 : 0) * giorniLavorati / 365
+        deduction1 = (irpefDeduction + (inponibileIRPEF > 25000 ? 65 : 0)) * giorniLavorati / 365
     } else if (inponibileIRPEF < 50000) {
         const irpefDeduction = 1910 * (50000 - inponibileIRPEF) / 22000
 
-        deduction1 = (irpefDeduction + inponibileIRPEF > 35000 ? 65 : 0) * giorniLavorati / 365
+        deduction1 = (irpefDeduction + Number((inponibileIRPEF <= 35000 ? 65 : 0))) * giorniLavorati / 365
     }
 
 
