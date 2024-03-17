@@ -10,7 +10,6 @@ const app = express();
 app.use(cors());
 
 //db
-// const userRoutes = require('./routes/userRoutes');
 const inputRoutes = require('./routes/inputRoutes');
 
 
@@ -26,6 +25,8 @@ mongoose.connect(mongoUrl)
 //middleware
 app.use(morgan('dev'));
 app.use(express.json());
+
+
 //error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -45,7 +46,6 @@ app.use('/api', inputRoutes);
 const port = process.env.PORT || 3001;
 
 //listener
-
 app.listen(port, (error) => {
   if (error) {
     console.error('Failed to start the server:', error);
